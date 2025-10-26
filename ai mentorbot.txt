@@ -1,0 +1,428 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>AI Mentorship Platform</title>
+    <!-- Load Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- Use Inter font family -->
+    <style>
+        body { font-family: 'Inter', sans-serif; background-color: #f3f4f6; }
+        /* Styling for the custom scrollbar */
+        .custom-scrollbar::-webkit-scrollbar { width: 8px; }
+        .custom-scrollbar::-webkit-scrollbar-thumb { background-color: #a8a8a8; border-radius: 4px; }
+        .custom-scrollbar::-webkit-scrollbar-track { background-color: #f0f0f0; }
+        .tab-active { @apply border-b-4 border-indigo-500 font-bold text-indigo-700; }
+    </style>
+</head>
+<body class="min-h-screen flex items-center justify-center p-4">
+    <div id="app" class="w-full max-w-2xl bg-white shadow-2xl rounded-xl flex flex-col h-[95vh] overflow-hidden">
+        
+        <!-- Header & Navigation -->
+        <header class="bg-white p-4 shadow-lg sticky top-0 z-10">
+            <h1 class="text-3xl font-extrabold text-indigo-700 flex items-center">
+                <svg xmlns="http://www.w3.org/2000/svg" class="h-8 w-8 mr-3 text-amber-500" viewBox="0 0 20 20" fill="currentColor">
+                    <path fill-rule="evenodd" d="M10 9a3 3 0 100-6 3 3 0 000 6zm-7 9a7 7 0 1114 0H3z" clip-rule="evenodd" />
+                </svg>
+                Project Mentor Hub
+            </h1>
+            <div id="user-info" class="text-sm text-gray-500 mt-1 flex justify-between items-center">
+                <span id="role-display" class="font-medium text-indigo-500">Mentee View (Default)</span>
+                <span id="auth-status" class="text-xs opacity-80 bg-gray-200 px-2 py-1 rounded-full">Connecting...</span>
+            </div>
+
+            <!-- Tab Navigation -->
+            <nav class="flex mt-4 border-b border-gray-200">
+                <button class="tab-button px-4 py-2 text-sm md:text-base transition duration-150" data-view="ai-mentor">AI Mentor Chat</button>
+                <button class="tab-button px-4 py-2 text-sm md:text-base transition duration-150" data-view="goals-tracker">Goals & Progress</button>
+                <button class="tab-button px-4 py-2 text-sm md:text-base transition duration-150" data-view="mentor-dashboard">Mentor Dashboard</button>
+            </nav>
+        </header>
+
+        <!-- Main Content Area -->
+        <main class="flex-grow overflow-hidden relative">
+            
+            <!-- 1. AI Mentor Chat View (The Core Functionality) -->
+            <div id="ai-mentor" class="view h-full flex flex-col p-4 hidden">
+                <div id="chat-history" class="flex-grow space-y-4 overflow-y-auto custom-scrollbar pb-4">
+                    <!-- Initial welcome message added via JS for consistency -->
+                </div>
+                <div class="bg-gray-50 border-t border-gray-200 p-4 -mx-4">
+                    <div class="flex space-x-3">
+                        <input type="text" id="user-input" placeholder="Ask the Mentor for your next step or advice..."
+                               class="flex-grow p-3 border border-gray-300 rounded-xl focus:ring-indigo-500 focus:border-indigo-500 shadow-inner text-base">
+                        <button id="send-btn" onclick="sendMessage()"
+                                class="bg-indigo-600 text-white w-24 p-3 rounded-xl shadow-lg hover:bg-indigo-700 disabled:bg-indigo-400 transition duration-150 active:scale-95">
+                            Send
+                        </button>
+                    </div>
+                    <p id="error-message" class="text-red-500 text-sm mt-2 hidden">An error occurred. Please try again.</p>
+                </div>
+            </div>
+
+            <!-- 2. Goals & Progress Tracker View (Mentee Focus) -->
+            <div id="goals-tracker" class="view p-6 overflow-y-auto hidden">
+                <h2 class="text-2xl font-bold text-gray-800 mb-4">My Mentorship Journey</h2>
+                <div class="space-y-6">
+                    <!-- Current Goal -->
+                    <div class="bg-yellow-50 border-l-4 border-yellow-500 p-4 rounded-lg shadow-md">
+                        <p class="font-semibold text-lg text-yellow-800">Primary SMART Goal:</p>
+                        <p class="text-gray-700 mt-1">**Goal:** Launch a minimum viable product (MVP) for my 'Local Eatery Finder' app and achieve 100 sign-ups within the next 4 months.</p>
+                        <button class="mt-3 text-sm text-indigo-600 hover:underline" onclick="alertPlaceholder('Edit Goal')">Edit Goal</button>
+                    </div>
+
+                    <!-- Milestones -->
+                    <h3 class="text-xl font-semibold text-gray-700">Next Milestones</h3>
+                    <ul class="space-y-3">
+                        <li class="p-3 bg-white rounded-lg border border-gray-200 shadow-sm flex justify-between items-center">
+                            <span class="text-gray-900">1. Finalize UI/UX design (Due: 3 weeks)</span>
+                            <span class="text-sm text-green-600 font-medium">Complete</span>
+                        </li>
+                        <li class="p-3 bg-white rounded-lg border border-gray-200 shadow-sm flex justify-between items-center">
+                            <span class="text-gray-900">2. Build core backend database structure (Due: 6 weeks)</span>
+                            <button class="text-sm text-indigo-500 hover:text-indigo-700" onclick="alertPlaceholder('Mark Complete')">Mark Complete</button>
+                        </li>
+                        <li class="p-3 bg-white rounded-lg border border-gray-200 shadow-sm flex justify-between items-center">
+                            <span class="text-gray-900">3. Implement user authentication (Due: 8 weeks)</span>
+                            <button class="text-sm text-indigo-500 hover:text-indigo-700" onclick="alertPlaceholder('Mark Complete')">Mark Complete</button>
+                        </li>
+                    </ul>
+
+                    <p class="text-sm text-gray-500 border-t pt-4">Need help setting a new milestone? Switch to the **AI Mentor Chat** view and ask!</p>
+                </div>
+            </div>
+
+            <!-- 3. Mentor Dashboard View (Mentor Focus) -->
+            <div id="mentor-dashboard" class="view p-6 overflow-y-auto hidden">
+                <h2 class="text-2xl font-bold text-gray-800 mb-4">Mentor Management Dashboard</h2>
+                <p class="text-gray-600 mb-6">Review your mentees' progress and share resources efficiently.</p>
+                
+                <!-- Mentee Cards -->
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <!-- Mentee 1 -->
+                    <div class="bg-white p-4 rounded-xl shadow-lg border-t-4 border-green-500">
+                        <p class="text-xl font-semibold text-gray-800">Jane Doe</p>
+                        <p class="text-sm text-gray-500">Project: Marketing Campaign Redesign</p>
+                        <p class="text-sm mt-2">**Progress:** 75% complete. Latest check-in: 2 days ago.</p>
+                        <p class="text-xs text-green-600">Goal: Increase conversion rate by 15%.</p>
+                        <button class="mt-3 w-full bg-indigo-100 text-indigo-700 py-2 rounded-lg hover:bg-indigo-200 transition" onclick="alertPlaceholder('Review Jane\'s progress and draft AI feedback.')">Review & Feedback</button>
+                    </div>
+                    <!-- Mentee 2 -->
+                    <div class="bg-white p-4 rounded-xl shadow-lg border-t-4 border-yellow-500">
+                        <p class="text-xl font-semibold text-gray-800">Alex Chen</p>
+                        <p class="text-sm text-gray-500">Project: Frontend Development Skill-up</p>
+                        <p class="text-sm mt-2">**Progress:** 40% complete. Latest check-in: 5 days ago.</p>
+                        <p class="text-xs text-yellow-700">Goal: Master React.js and deploy a portfolio site.</p>
+                        <button class="mt-3 w-full bg-indigo-100 text-indigo-700 py-2 rounded-lg hover:bg-indigo-200 transition" onclick="alertPlaceholder('Review Alex\'s progress and draft AI feedback.')">Review & Feedback</button>
+                    </div>
+                </div>
+
+                <!-- Shared Resources Uploader (Placeholder) -->
+                <div class="mt-8 p-4 bg-gray-100 rounded-xl shadow-inner">
+                    <h3 class="text-xl font-semibold text-gray-700 mb-3">Shared Resources</h3>
+                    <p class="text-sm text-gray-600 mb-3">Upload a resource to share with all your mentees.</p>
+                    <input type="text" placeholder="Resource Title/Link" class="w-full p-2 border border-gray-300 rounded-lg">
+                    <button class="mt-3 w-full bg-indigo-500 text-white py-2 rounded-lg hover:bg-indigo-600 transition" onclick="alertPlaceholder('Upload Resource')">Upload Resource</button>
+                </div>
+            </div>
+            
+            <!-- Loading Indicator Overlay -->
+            <div id="loading-indicator" class="hidden absolute inset-0 bg-white bg-opacity-80 flex flex-col items-center justify-center rounded-xl">
+                <div class="animate-spin rounded-full h-16 w-16 border-t-4 border-b-4 border-indigo-600"></div>
+                <p class="mt-4 text-indigo-700 font-medium text-lg">Mentor is thinking...</p>
+            </div>
+        </main>
+    </div>
+
+    <!-- Firebase and Application Logic -->
+    <script type="module">
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-app.js";
+        import { getAuth, signInAnonymously, signInWithCustomToken, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js";
+        import { getFirestore, setLogLevel } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
+
+        // === GLOBAL SETUP ===
+        const MODEL_NAME = "gemini-2.5-flash-preview-09-2025";
+        const API_URL = `https://generativelanguage.googleapis.com/v1beta/models/${MODEL_NAME}:generateContent`;
+        
+        // Environment Variables
+        const appId = typeof __app_id !== 'undefined' ? __app_id : 'default-app-id';
+        const firebaseConfig = typeof __firebase_config !== 'undefined' ? JSON.parse(__firebase_config) : {};
+        const authToken = typeof __initial_auth_token !== 'undefined' ? __initial_auth_token : null;
+        const apiKey = ""; 
+
+        let db, auth;
+        let isAuthReady = false;
+        let chatHistory = [];
+        
+        // Mentor Persona
+        const mentorSystemInstruction = "You are 'The Project Mentor,' an AI designed to provide world-class advice, guidance, and project management coaching. Your tone is supportive, encouraging, professional, and pragmatic. When responding, break down complex topics into actionable steps, provide clear explanations, and maintain a positive attitude. Use structured formatting like bullet points or numbered lists for actionable steps when appropriate. Keep responses concise and focused.";
+
+        // UI elements
+        const chatHistoryEl = document.getElementById('chat-history');
+        const userInputEl = document.getElementById('user-input');
+        const sendBtnEl = document.getElementById('send-btn');
+        const loadingEl = document.getElementById('loading-indicator');
+        const statusEl = document.getElementById('auth-status');
+        const views = document.querySelectorAll('.view');
+        const tabButtons = document.querySelectorAll('.tab-button');
+        const roleDisplayEl = document.getElementById('role-display');
+
+        // === VIEW AND NAVIGATION LOGIC ===
+        
+        function switchView(viewId) {
+            views.forEach(view => {
+                view.classList.add('hidden');
+            });
+            document.getElementById(viewId).classList.remove('hidden');
+
+            tabButtons.forEach(button => {
+                if (button.dataset.view === viewId) {
+                    button.classList.add('tab-active');
+                } else {
+                    button.classList.remove('tab-active');
+                }
+            });
+
+            // Ensure chat view is scrolled to bottom when activated
+            if (viewId === 'ai-mentor') {
+                chatHistoryEl.scrollTop = chatHistoryEl.scrollHeight;
+                userInputEl.focus();
+            }
+        }
+
+        tabButtons.forEach(button => {
+            button.addEventListener('click', () => switchView(button.dataset.view));
+        });
+
+        // Placeholder for user action (since alert() is forbidden)
+        window.alertPlaceholder = function(action) {
+            console.log(`Action simulated: ${action}`);
+            const errorEl = document.getElementById('error-message');
+            errorEl.textContent = `[Action] ${action}: This feature would interact with the database in a full-scale platform.`;
+            errorEl.classList.remove('hidden');
+            setTimeout(() => errorEl.classList.add('hidden'), 3000);
+        }
+
+        // Initialize default view
+        switchView('ai-mentor');
+
+
+        // === FIREBASE INITIALIZATION AND AUTH ===
+        async function initFirebase() {
+            try {
+                const app = initializeApp(firebaseConfig);
+                db = getFirestore(app);
+                auth = getAuth(app);
+
+                if (authToken) {
+                    await signInWithCustomToken(auth, authToken);
+                } else {
+                    await signInAnonymously(auth);
+                }
+
+                onAuthStateChanged(auth, (user) => {
+                    isAuthReady = true;
+                    if (user) {
+                        statusEl.textContent = `Authenticated`;
+                        statusEl.classList.add('bg-green-600', 'text-white');
+                    } else {
+                        statusEl.textContent = `Anonymous`;
+                        statusEl.classList.add('bg-yellow-500', 'text-black');
+                    }
+                    renderInitialChat();
+                });
+            } catch (e) {
+                console.error("Firebase initialization or authentication failed:", e);
+                statusEl.textContent = 'Auth Failed';
+            }
+        }
+        
+        function renderInitialChat() {
+             // Add initial welcome message to history and render
+            const welcomeMessage = { role: 'model', parts: [{ text: "Welcome! I'm your AI Project Mentor. Use me for instant advice, resource discovery, or to break down your goals. What can I help you plan today?" }] };
+            chatHistory.push(welcomeMessage);
+            renderChat();
+        }
+
+        // === CHAT LOGIC ===
+
+        window.sendMessage = async function() {
+            const userText = userInputEl.value.trim();
+            if (!userText || !isAuthReady) return;
+
+            // 1. Prepare UI for sending
+            userInputEl.value = '';
+            sendBtnEl.disabled = true;
+            loadingEl.classList.remove('hidden');
+            document.getElementById('error-message').classList.add('hidden');
+            
+            // 2. Add user message to history and render
+            const userMessage = { role: 'user', parts: [{ text: userText }] };
+            chatHistory.push(userMessage);
+            renderChat();
+
+            // 3. Prepare payload for API call
+            const apiPayload = {
+                contents: chatHistory.map(msg => ({
+                    role: msg.role === 'user' ? 'user' : 'model',
+                    parts: msg.parts.map(p => ({ text: p.text }))
+                })),
+                tools: [{ "google_search": {} }],
+                systemInstruction: { parts: [{ text: mentorSystemInstruction }] }
+            };
+
+            // 4. Call Gemini API with exponential backoff
+            try {
+                const result = await callGeminiApiWithBackoff(API_URL, apiKey, apiPayload);
+                
+                // 5. Process result and update history
+                const modelText = result.text;
+                const sources = result.sources;
+
+                const modelMessage = { 
+                    role: 'model', 
+                    parts: [{ 
+                        text: modelText + (sources.length > 0 ? formatSources(sources) : '') 
+                    }] 
+                };
+                
+                chatHistory.push(modelMessage);
+
+            } catch (error) {
+                console.error("Gemini API call failed:", error);
+                document.getElementById('error-message').textContent = 'The Mentor is currently unavailable. Please try again.';
+                document.getElementById('error-message').classList.remove('hidden');
+            } finally {
+                // 6. Final UI update
+                loadingEl.classList.add('hidden');
+                sendBtnEl.disabled = false;
+                renderChat();
+            }
+        }
+
+        // === API UTILITIES (including backoff) ===
+
+        async function callGeminiApiWithBackoff(url, key, payload, maxRetries = 5) {
+            let attempt = 0;
+            while (attempt < maxRetries) {
+                try {
+                    const response = await fetch(`${url}?key=${key}`, {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify(payload)
+                    });
+
+                    if (!response.ok) {
+                        if (response.status === 429 && attempt < maxRetries - 1) {
+                            throw new Error('Transient error. Retrying...');
+                        } else {
+                            const errorBody = await response.json();
+                            throw new Error(`API call failed: ${response.status} - ${errorBody.error?.message || 'Unknown error'}`);
+                        }
+                    }
+
+                    const result = await response.json();
+                    const candidate = result.candidates?.[0];
+
+                    if (candidate && candidate.content?.parts?.[0]?.text) {
+                        const text = candidate.content.parts[0].text;
+                        let sources = [];
+                        const groundingMetadata = candidate.groundingMetadata;
+                        if (groundingMetadata && groundingMetadata.groundingAttributions) {
+                            sources = groundingMetadata.groundingAttributions
+                                .map(attribution => ({ uri: attribution.web?.uri, title: attribution.web?.title, }))
+                                .filter(source => source.uri && source.title);
+                        }
+                        return { text, sources };
+                    } else {
+                        throw new Error("No valid response text received from the model.");
+                    }
+
+                } catch (error) {
+                    attempt++;
+                    if (attempt >= maxRetries) throw error;
+                    const delay = Math.pow(2, attempt) * 1000 + (Math.random() * 500);
+                    await new Promise(resolve => setTimeout(resolve, delay));
+                }
+            }
+        }
+
+        function formatSources(sources) {
+            const uniqueSources = sources.filter((source, index, self) =>
+                index === self.findIndex((s) => (s.uri === source.uri))
+            );
+            
+            if (uniqueSources.length === 0) return '';
+
+            let sourceHtml = '<div class="mt-2 pt-2 border-t border-gray-300 text-xs text-gray-500 italic">';
+            sourceHtml += 'Grounded in: ';
+            uniqueSources.forEach((s, index) => {
+                sourceHtml += `<a href="${s.uri}" target="_blank" class="text-indigo-600 hover:text-indigo-800 underline">${index + 1}</a> `;
+            });
+            sourceHtml += '</div>';
+            return sourceHtml;
+        }
+
+        // === UI RENDERING ===
+
+        function renderChat() {
+            chatHistoryEl.innerHTML = ''; 
+
+            chatHistory.forEach(message => {
+                if (!message.parts || message.parts.length === 0) return;
+
+                const isUser = message.role === 'user';
+                const messageText = message.parts[0].text;
+
+                const messageEl = document.createElement('div');
+                messageEl.className = `flex ${isUser ? 'justify-end' : 'justify-start'}`;
+
+                // Process Markdown-like formatting
+                let contentHtml = messageText
+                    .replace(/## (.*?)<br>/g, '<strong>$1</strong><br>')
+                    .replace(/<br>\* (.*?)/g, '<ul class="list-disc ml-5 mt-1"><li>$1</li></ul>')
+                    .replace(/<br>- (.*?)/g, '<ul class="list-disc ml-5 mt-1"><li>$1</li></ul>')
+                    .replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>')
+                    .replace(/\n/g, '<br>');
+
+                contentHtml = contentHtml.replace(/<\/ul><ul class="list-disc ml-5 mt-1">/g, '');
+
+                // Extract and separate the source grounding links
+                const sourceRegex = /<div class="mt-2 pt-2 border-t border-gray-300 text-xs text-gray-500 italic">.*?<\/div>$/s;
+                const sourceMatch = contentHtml.match(sourceRegex);
+                let sourcesHtml = '';
+                if (sourceMatch) {
+                    sourcesHtml = sourceMatch[0];
+                    contentHtml = contentHtml.replace(sourceRegex, '');
+                }
+                
+                // Final message block
+                messageEl.innerHTML = `
+                    <div class="p-4 rounded-xl shadow-lg max-w-xs md:max-w-md transition-all duration-300 ease-in-out ${isUser 
+                        ? 'bg-indigo-600 text-white rounded-br-none' 
+                        : 'bg-gray-100 text-gray-800 rounded-tl-none'}"
+                    >
+                        ${!isUser ? '<p class="font-bold text-indigo-700 mb-1">Mentor Bot:</p>' : ''}
+                        <div class="text-sm">${contentHtml}</div>
+                        ${sourcesHtml}
+                    </div>
+                `;
+                chatHistoryEl.appendChild(messageEl);
+            });
+
+            chatHistoryEl.scrollTop = chatHistoryEl.scrollHeight;
+        }
+
+        // === EVENT LISTENERS AND INITIAL LOAD ===
+        
+        userInputEl.addEventListener('keypress', function(e) {
+            if (e.key === 'Enter' && !sendBtnEl.disabled) {
+                sendMessage();
+            }
+        });
+
+        window.onload = initFirebase;
+    </script>
+</body>
+</html>
